@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Enterprise Security Constitution: Strict User Isolation
+    // Only the authenticated owner can access their own subcollection trees.
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      match /{allSubcollections=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Default deny all other database queries
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
